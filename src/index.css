@@ -1,0 +1,600 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo';
+@import '@fontsource/ibm-plex-mono';
+
+@source "./**/*.{tsx,ts}";
+
+/* Material: Tactile UI. The design is a machined control panel you can push.
+   These are the rules that carry it, and they are load-bearing:
+
+   1. .press          every pressable control shares one mechanical model. The
+                      face travels toward the panel AND scales down, the drop
+                      shadow collapses into the element, press-in is 70ms while
+                      release is a 260ms eased return with slight overshoot, so
+                      the depressed state is readable and then springs back.
+   2. .plate          machined panel: a directional face gradient, a chamfered
+                      top-left and bottom-right corner (2px inset rings), a 1px
+                      rim and a shadow tinted to the graphite field.
+   3. .knurl          diamond knurl for grip bands and the hero bezel, built
+                      from two crossed repeating-linear-gradients.
+   4. .ridge          fine axial milling for the toggle cap and key tops.
+   5. .seam           the mould parting line: a 1px dark line with a 1px light
+                      line beneath it, used where two halves of a housing meet.
+   6. .actuator / .toggle / .stepper / .readout
+                      the four control states. The actuator face collapses 4px
+                      and stays collapsed while data-on is true, the milled
+                      toggle cap slides 22px and loses its lift shadow, and a
+                      selected step key sits down inside its recessed channel.
+
+   Delete this block and the page stops reading as a tool panel.
+
+   Shape rule: ONE radius, 4px, locked site-wide, enforced by the global reset
+   in @layer base. There are no exceptions: buttons, cards, fields, chips and
+   images are all 4px because that is the radius of the real machined edge. */
+
+@theme {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  --color-graphite: #14171a;
+  --color-steel: #1b1f23;
+  --color-steel-lit: #262c31;
+  --color-rail: #323940;
+  --color-fog: #dfe4e7;
+  --color-fog-dim: #98a3aa;
+  --color-signal: #3fb2c6;
+  --color-ink: #0b1113;
+  --color-shadow: #070a0c;
+  /* Functional status colour for the form error state only. Never decoration,
+     never used as a second accent. */
+  --color-fault: #cc5540;
+
+  --font-display: 'Archivo Variable', system-ui, sans-serif;
+  --font-sans: 'Archivo Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  --radius-edge: 4px;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-radius: var(--radius-edge);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-graphite);
+    color: var(--color-fog);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* The machined field: fine horizontal tool marks, then a cool key light
+     from the upper left, matching the shadow direction of every control. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        rgb(255 255 255 / 0.014) 0 1px,
+        rgb(255 255 255 / 0) 1px 3px
+      ),
+      radial-gradient(56% 44% at 12% 2%, #232a30 0%, rgb(35 42 48 / 0) 62%),
+      radial-gradient(44% 38% at 94% 10%, #1d2328 0%, rgb(29 35 40 / 0) 64%),
+      radial-gradient(62% 52% at 76% 98%, #191e22 0%, rgb(25 30 34 / 0) 66%),
+      var(--color-graphite);
+  }
+
+  ::selection {
+    background-color: var(--color-signal);
+    color: var(--color-graphite);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-signal);
+    outline-offset: 3px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  button {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .shell {
+    max-width: 1400px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .shell {
+      padding-inline: 2.5rem;
+    }
+  }
+
+  /* Machined panel with a chamfered edge. */
+  .plate {
+    position: relative;
+    background: linear-gradient(180deg, #1e2328 0%, #171b1f 64%, #14181b 100%);
+    border: 1px solid var(--color-rail);
+    box-shadow:
+      inset 2px 2px 0 -1px rgb(255 255 255 / 0.07),
+      inset -2px -2px 0 -1px rgb(7 10 12 / 0.62),
+      0 22px 40px -30px rgb(7 10 12 / 0.95);
+  }
+
+  /* Diamond knurl. Two crossed repeating gradients over a face gradient. */
+  .knurl {
+    background-color: #23282d;
+    background-image:
+      repeating-linear-gradient(
+        45deg,
+        rgb(255 255 255 / 0.1) 0 1px,
+        rgb(255 255 255 / 0) 1px 5px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        rgb(7 10 12 / 0.34) 0 1px,
+        rgb(7 10 12 / 0) 1px 5px
+      ),
+      linear-gradient(180deg, #2b3137 0%, #1b2024 100%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.12),
+      inset 0 -2px 5px rgb(7 10 12 / 0.5);
+  }
+
+  /* Fine axial milling. */
+  .ridge {
+    background-color: #262c31;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgb(7 10 12 / 0.42) 0 1px,
+      rgb(255 255 255 / 0.1) 1px 2px,
+      rgb(7 10 12 / 0) 2px 4px
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.1),
+      inset 0 -1px 0 rgb(7 10 12 / 0.55);
+  }
+
+  /* The parting line between two halves of a housing. */
+  .seam {
+    height: 1px;
+    background-color: rgb(7 10 12 / 0.72);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.07);
+  }
+
+  /* Engraved type: dark below, catch light above. */
+  .engrave {
+    text-shadow:
+      0 1px 0 rgb(255 255 255 / 0.06),
+      0 -1px 0 rgb(7 10 12 / 0.62);
+  }
+
+  .micro {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    line-height: 1.2;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-fog-dim);
+  }
+
+  /* The press model. Every pressable thing on this page uses this. */
+  .press {
+    transition:
+      transform 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      box-shadow 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      background-color 220ms cubic-bezier(0.32, 0.72, 0, 1),
+      border-color 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .press:active {
+    transform: translateY(2px) scale(0.985);
+    transition-duration: 70ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    white-space: nowrap;
+    padding: 0.8rem 1.35rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border: 1px solid transparent;
+  }
+
+  .btn-primary {
+    color: var(--color-ink);
+    background: linear-gradient(180deg, #52c7db 0%, #33a0b5 58%, #2b8ba0 100%);
+    border-color: #7ad5e6;
+    box-shadow:
+      0 4px 0 #1a5f6d,
+      0 14px 24px -14px rgb(7 10 12 / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.5),
+      inset 0 -2px 0 rgb(7 10 12 / 0.18);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(180deg, #63d0e2 0%, #3aabc1 58%, #3094aa 100%);
+  }
+
+  .btn-primary:active {
+    box-shadow:
+      0 1px 0 #17505c,
+      0 3px 8px -5px rgb(7 10 12 / 0.95),
+      inset 0 3px 6px rgb(7 10 12 / 0.3);
+  }
+
+  .btn-ghost {
+    color: var(--color-fog);
+    background: linear-gradient(180deg, #262c31 0%, #1b1f23 100%);
+    border-color: #3a4249;
+    box-shadow:
+      0 3px 0 #101316,
+      0 10px 18px -12px rgb(7 10 12 / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.09);
+  }
+
+  .btn-ghost:hover {
+    background: linear-gradient(180deg, #2d343a 0%, #20252a 100%);
+  }
+
+  .btn-ghost:active {
+    box-shadow:
+      0 1px 0 #101316,
+      0 3px 8px -5px rgb(7 10 12 / 0.95),
+      inset 0 3px 5px rgb(7 10 12 / 0.42);
+  }
+
+  /* Icon nested inside the button, flush with its right padding. */
+  .btn-icon {
+    display: grid;
+    place-items: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    margin-right: -0.55rem;
+    background: rgb(11 17 19 / 0.16);
+    border: 1px solid rgb(11 17 19 / 0.2);
+  }
+
+  .btn-ghost .btn-icon {
+    background: rgb(255 255 255 / 0.08);
+    border-color: rgb(255 255 255 / 0.14);
+  }
+
+  /* Chunky primary actuator. The face is the moving part, so the compressed
+     state persists on its own (data-on) rather than only while held. */
+  .actuator {
+    display: block;
+    width: 100%;
+    padding: 0.7rem;
+    background-color: #1a1f23;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgb(7 10 12 / 0.4) 0 1px,
+      rgb(255 255 255 / 0.08) 1px 2px,
+      rgb(7 10 12 / 0) 2px 5px
+    );
+    border: 1px solid #343c43;
+    box-shadow:
+      inset 2px 2px 0 -1px rgb(255 255 255 / 0.06),
+      inset -2px -2px 0 -1px rgb(7 10 12 / 0.6);
+  }
+
+  .actuator-face {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    padding: 0.95rem 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+    background: linear-gradient(180deg, #52c7db 0%, #33a0b5 58%, #2b8ba0 100%);
+    border: 1px solid #7ad5e6;
+    box-shadow:
+      0 5px 0 #1a5f6d,
+      0 16px 26px -16px rgb(7 10 12 / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.52),
+      inset 0 -2px 0 rgb(7 10 12 / 0.18);
+    transition:
+      transform 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      box-shadow 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      background 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .actuator:hover .actuator-face {
+    background: linear-gradient(180deg, #63d0e2 0%, #3aabc1 58%, #3094aa 100%);
+  }
+
+  .actuator:active .actuator-face {
+    transform: translateY(4px) scale(0.992);
+    box-shadow:
+      0 1px 0 #17505c,
+      0 4px 10px -7px rgb(7 10 12 / 0.95),
+      inset 0 4px 8px rgb(7 10 12 / 0.3);
+    transition-duration: 70ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  /* Engaged: the face stays down and darkens into the housing. */
+  .actuator[data-on='true'] .actuator-face {
+    transform: translateY(4px) scale(0.992);
+    color: var(--color-fog);
+    background: linear-gradient(180deg, #2b7f8e 0%, #1f5765 100%);
+    border-color: #2c6975;
+    box-shadow:
+      0 1px 0 #123c47,
+      0 4px 10px -8px rgb(7 10 12 / 0.95),
+      inset 0 4px 9px rgb(7 10 12 / 0.55);
+  }
+
+  /* The lamp on the actuator cap. */
+  .lamp {
+    width: 9px;
+    height: 9px;
+    flex: none;
+    background-color: #2f5c66;
+    border: 1px solid rgb(7 10 12 / 0.5);
+    box-shadow: inset 0 1px 0 rgb(7 10 12 / 0.4);
+  }
+
+  .actuator[data-on='true'] .lamp {
+    background-color: var(--color-signal);
+    border-color: #8ce0ef;
+  }
+
+  /* Toggle in a milled housing. The cap slides and loses its lift shadow. */
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    background: linear-gradient(180deg, #23282d 0%, #191d21 100%);
+    border: 1px solid #333b42;
+    box-shadow:
+      0 3px 0 #101316,
+      0 10px 18px -13px rgb(7 10 12 / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.07);
+  }
+
+  .toggle:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 #101316,
+      0 3px 8px -5px rgb(7 10 12 / 0.95),
+      inset 0 3px 5px rgb(7 10 12 / 0.42);
+    transition-duration: 70ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  .toggle-track {
+    position: relative;
+    flex: none;
+    width: 3.75rem;
+    height: 1.5rem;
+    background-color: #0f1215;
+    box-shadow:
+      inset 0 2px 4px rgb(7 10 12 / 0.85),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  .toggle-cap {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 1.9rem;
+    height: calc(100% - 8px);
+    background-color: #3a4249;
+    background-image: repeating-linear-gradient(
+      90deg,
+      rgb(7 10 12 / 0.45) 0 1px,
+      rgb(255 255 255 / 0.12) 1px 2px,
+      rgb(7 10 12 / 0) 2px 4px
+    );
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.24),
+      0 2px 0 rgb(7 10 12 / 0.6);
+    transition:
+      transform 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      box-shadow 260ms cubic-bezier(0.2, 0.9, 0.28, 1.25),
+      background-color 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .toggle:active .toggle-cap {
+    transition-duration: 70ms;
+  }
+
+  .toggle[aria-pressed='true'] .toggle-cap {
+    transform: translateX(1.35rem) translateY(1px);
+    background-color: #2c7d8c;
+    box-shadow: inset 0 2px 5px rgb(7 10 12 / 0.6);
+  }
+
+  /* Stepped selector: a recessed channel with six machined detents. */
+  .stepper {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.375rem;
+    padding: 0.5rem;
+    background-color: #101316;
+    box-shadow:
+      inset 0 2px 6px rgb(7 10 12 / 0.85),
+      inset 0 -1px 0 rgb(255 255 255 / 0.05);
+  }
+
+  .step-key {
+    display: grid;
+    place-items: center;
+    padding: 0.65rem 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-fog);
+    background: linear-gradient(180deg, #2b3238 0%, #1d2226 100%);
+    border: 1px solid #3c454c;
+    box-shadow:
+      0 3px 0 #0d1013,
+      0 8px 12px -9px rgb(7 10 12 / 0.95),
+      inset 0 1px 0 rgb(255 255 255 / 0.11);
+  }
+
+  .step-key:hover {
+    background: linear-gradient(180deg, #323a41 0%, #22282d 100%);
+  }
+
+  .step-key:active {
+    transform: translateY(2px) scale(0.985);
+    box-shadow:
+      0 1px 0 #0d1013,
+      0 4px 8px -6px rgb(7 10 12 / 0.95),
+      inset 0 2px 4px rgb(7 10 12 / 0.45);
+    transition-duration: 70ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  .step-key.is-set {
+    color: var(--color-signal);
+    transform: translateY(3px);
+    background: linear-gradient(180deg, #171b1f 0%, #1f2529 100%);
+    border-color: #2a4d57;
+    box-shadow:
+      inset 0 3px 6px rgb(7 10 12 / 0.8),
+      inset 0 -1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  .step-key.is-set:hover {
+    background: linear-gradient(180deg, #1b2024 0%, #242a2f 100%);
+  }
+
+  .step-key.is-set:active {
+    transform: translateY(4px) scale(0.99);
+    box-shadow: inset 0 4px 8px rgb(7 10 12 / 0.85);
+  }
+
+  /* Engraved instrument window. */
+  .readout {
+    background: linear-gradient(180deg, #0d1013 0%, #15191c 100%);
+    border: 1px solid #2b3238;
+    box-shadow:
+      inset 0 2px 8px rgb(7 10 12 / 0.9),
+      inset 0 -1px 0 rgb(255 255 255 / 0.05);
+  }
+
+  .readout-k {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-fog-dim);
+  }
+
+  .readout-v {
+    font-family: var(--font-mono);
+    font-size: 1.0625rem;
+    line-height: 1.2;
+    color: var(--color-fog);
+  }
+
+  .readout-v[data-on='true'] {
+    color: var(--color-signal);
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .link-underline {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: rgb(223 228 231 / 0.32);
+    transition: text-decoration-color 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .link-underline:hover {
+    text-decoration-color: var(--color-signal);
+  }
+
+  .field {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    color: var(--color-fog);
+    background-color: #101316;
+    border: 1px solid #333b42;
+    font-size: 0.9375rem;
+    box-shadow:
+      inset 0 2px 4px rgb(7 10 12 / 0.7),
+      0 1px 0 rgb(255 255 255 / 0.04);
+    transition:
+      border-color 300ms cubic-bezier(0.32, 0.72, 0, 1),
+      background-color 300ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .field::placeholder {
+    color: var(--color-fog-dim);
+    opacity: 0.7;
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: var(--color-signal);
+    background-color: #14181b;
+  }
+
+  .field[aria-invalid='true'] {
+    border-color: var(--color-fault);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
